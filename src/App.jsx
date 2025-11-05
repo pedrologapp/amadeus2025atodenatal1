@@ -99,32 +99,47 @@ function App() {
     }, 100);
   };
 
-  // Cálculo de preço atualizado
-  const calculatePrice = () => {
-    const PRECO_BASE = 30.0;
+// Adicione este estado no início do componente, junto com os outros estados:
+const [ticketQuantity, setTicketQuantity] = useState(1);
+
+// Substitua a função calculatePrice() por esta versão atualizada:
+const calculatePrice = () => {
+  const PRECO_BASE = 30.0;
+  
+  let valorTotal = PRECO_BASE * ticketQuantity; // Multiplica pela quantidade
+  
+  if (formData.paymentMethod === 'credit') {
+    let taxaPercentual = 0;
+    const taxaFixa = 0.49;
+    const parcelas = parseInt(formData.installments) || 1;
     
-    let valorTotal = PRECO_BASE;
-    
-    if (formData.paymentMethod === 'credit') {
-      let taxaPercentual = 0;
-      const taxaFixa = 0.49;
-      const parcelas = parseInt(formData.installments) || 1;
-      
-      if (parcelas === 1) {
-        taxaPercentual = 0.0299;
-      } else if (parcelas >= 2 && parcelas <= 4) {
-        taxaPercentual = 0.0349;
-      } else {
-        taxaPercentual = 0.0399;
-      }
-      
-      valorTotal = valorTotal + (valorTotal * taxaPercentual) + taxaFixa;
+    if (parcelas === 1) {
+      taxaPercentual = 0.0299;
+    } else if (parcelas >= 2 && parcelas <= 4) {
+      taxaPercentual = 0.0349;
+    } else {
+      taxaPercentual = 0.0399;
     }
     
-    const valorParcela = valorTotal / (parseInt(formData.installments) || 1);
-    return { valorTotal, valorParcela };
-  };
+    valorTotal = valorTotal + (valorTotal * taxaPercentual) + taxaFixa;
+  }
+  
+  const valorParcela = valorTotal / (parseInt(formData.installments) || 1);
+  return { valorTotal, valorParcela };
+};
 
+// Adicione estas funções para controlar a quantidade:
+const increaseTickets = () => {
+  if (ticketQuantity < 4) {
+    setTicketQuantity(prev => prev + 1);
+  }
+};
+
+const decreaseTickets = () => {
+  if (ticketQuantity > 1) {
+    setTicketQuantity(prev => prev - 1);
+  }
+};
   const { valorTotal, valorParcela } = calculatePrice();
 
   const handleInputChange = (e) => {
@@ -207,6 +222,7 @@ function App() {
           phone: formData.phone,
           paymentMethod: formData.paymentMethod,
           installments: formData.installments,
+		  ticketQuantity: ticketQuantity, 
           amount: valorTotal,
           timestamp: new Date().toISOString(),
           event: 'Amadeus-venezapark'
@@ -926,95 +942,166 @@ function App() {
                     </div>
                   </div>
                   */}
-                  {/* Método de Pagamento */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-4">Método de Pagamento*</h3>
-                    
-                    <div className="space-y-3 mb-6">
-                      <div 
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          formData.paymentMethod === 'pix' 
-                            ? 'border-orange-400 bg-orange-50' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'pix', installments: 1 }))}
-                      >
-                        <div className="flex items-center">
-                          <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                            formData.paymentMethod === 'pix' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
-                          }`}>
-                            {formData.paymentMethod === 'pix' && (
-                              <div className="w-full h-full rounded-full bg-orange-400"></div>
-                            )}
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-lg font-bold">PIX</span>
-                            <span className="text-sm">
-                              R$ {(30).toFixed(2).replace('.', ',')} (sem taxas)
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+                  {/* Quantidade de Ingressos */}
+<div>
+  <h3 className="text-lg font-semibold mb-4 flex items-center">
+    <Users className="mr-2 h-5 w-5" />
+    Quantidade de Ingressos
+  </h3>
+  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
+    <p className="text-sm text-blue-800 mb-3">
+      Cada ingresso custa R$ 30,00. Você pode comprar até 4 ingressos.
+    </p>
+    
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-4">
+        <Label className="text-sm font-medium">Quantidade de ingressos:</Label>
+        <div className="flex items-center space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={decreaseTickets}
+            disabled={ticketQuantity === 1}
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+          <span className="w-8 text-center font-semibold text-lg">
+            {ticketQuantity}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={increaseTickets}
+            disabled={ticketQuantity === 4}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      <div className="text-sm">
+        <span className="text-gray-600">Subtotal: </span>
+        <span className="text-green-600 font-bold text-lg">
+          R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')}
+        </span>
+      </div>
+    </div>
+    
+    {ticketQuantity >= 3 && (
+      <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
+        <p className="text-xs text-green-800 font-medium flex items-center">
+          <CheckCircle className="h-4 w-4 mr-1" />
+          Para 3 ou mais ingressos você pode parcelar em até 2x no cartão!
+        </p>
+      </div>
+    )}
+  </div>
+</div>
 
-                      <div 
-                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                          formData.paymentMethod === 'credit' 
-                            ? 'border-orange-400 bg-orange-50' 
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'credit' }))}
-                      >
-                        <div className="flex items-center">
-                          <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-                            formData.paymentMethod === 'credit' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
-                          }`}>
-                            {formData.paymentMethod === 'credit' && (
-                              <div className="w-full h-full rounded-full bg-orange-400"></div>
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <span className="text-sm">💳</span>
-                              <span className="text-sm font-medium">Cartão de Crédito</span>
-                            </div>
-                            <div className="text-xs text-gray-600 ml-6">                        
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+{/* Método de Pagamento */}
+<div>
+  <h3 className="text-lg font-semibold mb-4">Método de Pagamento*</h3>
+  
+  <div className="space-y-3 mb-6">
+    <div 
+      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+        formData.paymentMethod === 'pix' 
+          ? 'border-orange-400 bg-orange-50' 
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'pix', installments: 1 }))}
+    >
+      <div className="flex items-center">
+        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+          formData.paymentMethod === 'pix' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
+        }`}>
+          {formData.paymentMethod === 'pix' && (
+            <div className="w-full h-full rounded-full bg-orange-400"></div>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <span className="text-lg font-bold">PIX</span>
+          <span className="text-sm">
+            R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')} (sem taxas)
+          </span>
+        </div>
+      </div>
+    </div>
 
-                    {formData.paymentMethod === 'credit' && (
-                      <div className="mb-6">
-                        <Label className="text-sm font-medium">Número de Parcelas</Label>
-                        <select
-                          value={formData.installments}
-                          onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
-                          className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
-                        >
-                          <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>          
-                          {/* <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>					        
-                          <option value={3}>3x de R$ {(valorTotal / 3).toFixed(2).replace('.', ',')}</option>						        
-                          <option value={4}>4x de R$ {(valorTotal / 4).toFixed(2).replace('.', ',')}</option>  */}
-                        </select>
-                      </div>
-                    )}
+    <div 
+      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+        formData.paymentMethod === 'credit' 
+          ? 'border-orange-400 bg-orange-50' 
+          : 'border-gray-200 hover:border-gray-300'
+      }`}
+      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'credit' }))}
+    >
+      <div className="flex items-center">
+        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+          formData.paymentMethod === 'credit' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
+        }`}>
+          {formData.paymentMethod === 'credit' && (
+            <div className="w-full h-full rounded-full bg-orange-400"></div>
+          )}
+        </div>
+        <div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm">💳</span>
+            <span className="text-sm font-medium">Cartão de Crédito</span>
+          </div>
+          {ticketQuantity >= 3 && (
+            <div className="text-xs text-green-600 ml-6 font-medium">
+              ✓ Parcele em até 2x sem juros
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
 
-                    {/* Valor Total */}
-                    <div className="bg-orange-100 p-4 rounded-lg border border-orange-200">
-                      <div className="text-center">
-                        <h4 className="text-lg font-bold text-orange-800 mb-1">Valor Total</h4>
-                        <div className="text-2xl font-bold text-orange-900">
-                          R$ {valorTotal.toFixed(2).replace('.', ',')}
-                        </div>
-                        {formData.paymentMethod === 'credit' && formData.installments > 1 && (
-                          <div className="text-sm text-orange-700 mt-1">
-                            {formData.installments}x de R$ {valorParcela.toFixed(2).replace('.', ',')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+  {formData.paymentMethod === 'credit' && (
+    <div className="mb-6">
+      <Label className="text-sm font-medium">Número de Parcelas</Label>
+      <select
+        value={formData.installments}
+        onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
+        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
+      >
+        <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>
+        {ticketQuantity >= 3 && (
+          <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>
+        )}
+      </select>
+      {ticketQuantity < 3 && (
+        <p className="text-xs text-gray-500 mt-1">
+          * Parcelamento disponível apenas para 3 ou mais ingressos
+        </p>
+      )}
+    </div>
+  )}
+
+  {/* Valor Total */}
+  <div className="bg-orange-100 p-4 rounded-lg border border-orange-200">
+    <div className="text-center">
+      <h4 className="text-lg font-bold text-orange-800 mb-1">Valor Total</h4>
+      <div className="text-sm text-gray-600 mb-1">
+        {ticketQuantity} ingresso{ticketQuantity > 1 ? 's' : ''} × R$ 30,00
+      </div>
+      <div className="text-2xl font-bold text-orange-900">
+        R$ {valorTotal.toFixed(2).replace('.', ',')}
+      </div>
+      {formData.paymentMethod === 'credit' && formData.installments > 1 && (
+        <div className="text-sm text-orange-700 mt-1">
+          {formData.installments}x de R$ {valorParcela.toFixed(2).replace('.', ',')}
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
                   {/* Botão de Envio */}
                   <Button 
@@ -1096,6 +1183,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
