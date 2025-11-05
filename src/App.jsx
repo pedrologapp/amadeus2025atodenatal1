@@ -32,9 +32,9 @@ import {
   AlertTriangle
 } from 'lucide-react';
 // Importando as imagens
-import interiorImage1 from './assets/happy1.jpg';
-import interiorImage2 from './assets/happy2.jpg';
-import jardimImage from './assets/happy3.jpg';
+import interiorImage1 from './assets/happy1.JPG';
+import interiorImage2 from './assets/happy2.JPG';
+import jardimImage from './assets/happy3.JPG';
 
 function App() {
   // Estados para o formulário
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
