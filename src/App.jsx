@@ -669,7 +669,7 @@ const decreaseTickets = () => {
                     </li>
                     <li className="flex items-start">
                       <Shield className="h-4 w-4 text-destructive mr-2 mt-0.5" />
-                      AO PAGAR A TAXA NÃO PODEREMOS REEMBOLSAR O VALOR.
+                      O valor pago não poderá ser reembolsado. 
                     </li>
                   </ul>
                 </div>
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
