@@ -299,7 +299,7 @@ function App() {
             Auto de Natal
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Estamos nos aproximando do encerramento do ano letivo e, para celebrarmos juntos, convidamos você e sua família para o nosso Auto de Natal!
+            Estamos nos aproximando do encerramento do ano letivo e, para celebrarmos juntos, convidamos você e sua família para o nosso Auto de Natal! 
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -331,10 +331,10 @@ function App() {
             <h2 className="text-4xl font-bold mb-4 gradient-text">Sobre o Evento</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             O Auto de Natal é uma apresentação teatral que conta a história do nascimento de Jesus 
-de forma lúdica e emocionante. É uma tradição que mistura teatro, música e a magia do 
-Natal, onde as crianças dão vida aos personagens dessa história tão especial. Este ano, 
-nossos alunos prepararam um espetáculo lindo no Teatro Poti Cavalcanti para celebrar o 
-encerramento do ano letivo. 
+			de forma lúdica e emocionante. É uma tradição que mistura teatro, música e a magia do 
+			Natal, onde as crianças dão vida aos personagens dessa história tão especial. Este ano, 
+			nossos alunos prepararam um espetáculo lindo no Teatro Poti Cavalcanti para celebrar o 
+			encerramento do ano letivo. 
 			</p>
           </div>
 
@@ -390,7 +390,7 @@ encerramento do ano letivo.
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-center">
-                  Entrada: 13:30 da tarde
+                  Entrada: 13:30
                 </p>
                 <p className="text-sm text-center">
                   Início das apresentações: 14:00
@@ -461,7 +461,7 @@ encerramento do ano letivo.
       <section id="documentacao" className="section-padding bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Observações importantes</h2>
+            <h2 className="text-4xl font-bold mb-4">IMPORTANTE - LEIA</h2>
           </div>
 
           <div className="mt-8 p-6 bg-accent/10 rounded-lg border border-accent/20">
@@ -471,7 +471,7 @@ encerramento do ano letivo.
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="text-sm">
-                  O transporte está incluso no pacote.  
+                  É necessário a confirmação do(a) aluno(a) para a participação no Auto de Natal. 
                   </p>
                 </div>
               </div>
@@ -480,7 +480,7 @@ encerramento do ano letivo.
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="text-sm">
-                    O não comparecimento do aluno no dia do evento não acarretará em reembolso do valor pago. 
+                    Só irá participar dos ensaios  o(a) aluno(a) que o responsável confirmar sua presença.
                   </p>
                 </div>
               </div>
@@ -488,17 +488,25 @@ encerramento do ano letivo.
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="text-sm">
-                   Almoço e lanche poderão ser comprados no park.
+                   O aluno que irá APRESENTAR não paga, no entanto para CADA responsável, que tiver interesse de assistir, O INGRESSO será de R$ 30,00. 
                   </p>
                 </div>
               </div>    
+			 <div className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
+                <div>
+                  <p className="text-sm">
+                   A confirmação do aluno deve ser feita até 14 de novembro de 2025, diretamente com a professora. 
+                  </p>
+                </div>
+              </div>  
           
             </div>
           </div>
         </div>
       </section>
 
-				{/* Alimentação Opcional */}
+				{/* Alimentação Opcional 
       <section id="alimentacao" className="section-padding bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
@@ -593,21 +601,21 @@ encerramento do ano letivo.
      
         </div>
       </section>
-		
+		*/}
       {/* Custos e Pagamento */}
       <section id="custos" className="section-padding bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4">Inscrição e Taxa</h2>
             <p className="text-lg text-muted-foreground">
-              Valor único por Aluno - À vista ou em até 4x no cartão. 
+              O aluno que irá APRESENTAR não paga, no entanto para CADA responsável, que tiver interesse de assistir, O INGRESSO será de R$ 30,00. 
             </p>
           </div>
 
           <Card className="mb-8">
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl text-primary">R$ 280,00</CardTitle>
-              <CardDescription>por aluno</CardDescription>
+              <CardTitle className="text-3xl text-primary">R$ 30,00</CardTitle>
+              <CardDescription>por RESPONSÁVEL</CardDescription>
               {/* 
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                 <p className="text-sm text-blue-800">
@@ -624,11 +632,11 @@ encerramento do ano letivo.
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center">
                       <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                      Transporte ida e volta.
+                      Bombeiros, decoração, som e iluminação.
                     </li>
                     <li className="flex items-center">
                       <CheckCircle className="h-4 w-4 text-accent mr-2" />
-                      Entrada para o park.
+                      Entrada no teatro.
                     </li>
                   </ul>
                 </div>
@@ -637,11 +645,11 @@ encerramento do ano letivo.
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-start">
                       <Shield className="h-4 w-4 text-destructive mr-2 mt-0.5" />
-                      Pagamento obrigatório até 10 de Outubro de 2025;
+                      Pagamento obrigatório até 03 de Dezembro de 2025;
                     </li>
                     <li className="flex items-start">
                       <Shield className="h-4 w-4 text-destructive mr-2 mt-0.5" />
-                      O fardamento da escola não será usado nesse passeio, roupas apropriadas livre.
+                      AO PAGAR A TAXA NÃO PODEREMOS REEMBOLSAR O VALOR.
                     </li>
                   </ul>
                 </div>
@@ -724,21 +732,24 @@ encerramento do ano letivo.
                             className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                           >
                             <option value="">Selecione a série</option>
-                           {/* 
+                       
 							<option value="Maternal II">Maternal II</option>
                             <option value="Maternal III">Maternal III</option>
                             <option value="Grupo 4">Grupo 4</option>
                             <option value="Grupo 5">Grupo 5</option>
-                            <option value="1º Ano">1º Ano</option>
+                          
+						    <option value="1º Ano">1º Ano</option>
                             <option value="2º Ano">2º Ano</option>
                             <option value="3º Ano">3º Ano</option>
-							*/}
+							   
 							<option value="4º Ano">4º Ano</option>
 							<option value="5º Ano">5º Ano</option>
+							  {/* 
 							<option value="6º Ano">6º Ano</option>
 							<option value="7º Ano">7º Ano</option>
 							<option value="8º Ano">8º Ano</option>
 							<option value="9º Ano">9º Ano</option>
+							*/}
                           </select>
                         </div>
                         {/* 
@@ -978,9 +989,9 @@ encerramento do ano letivo.
                           className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
                         >
                           <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>          
-                          <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>					        
+                          {/* <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>					        
                           <option value={3}>3x de R$ {(valorTotal / 3).toFixed(2).replace('.', ',')}</option>						        
-                          <option value={4}>4x de R$ {(valorTotal / 4).toFixed(2).replace('.', ',')}</option>
+                          <option value={4}>4x de R$ {(valorTotal / 4).toFixed(2).replace('.', ',')}</option>  */}
                         </select>
                       </div>
                     )}
@@ -1081,6 +1092,7 @@ encerramento do ano letivo.
 }
 
 export default App;
+
 
 
 
