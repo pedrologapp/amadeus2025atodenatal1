@@ -320,6 +320,10 @@ function App() {
               <MapPin className="h-5 w-5 mr-2" />
               Teatro Poti Cavalcanti - São Gonçalo do Amarante
             </div>
+			<div className="flex items-center">
+              <MapPin className="h-5 w-5 mr-2" />
+              Esse link é apenas para os alunos que estudam no turno matutino.
+            </div>
           </div>
         </div>
       </section>
@@ -1092,6 +1096,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
