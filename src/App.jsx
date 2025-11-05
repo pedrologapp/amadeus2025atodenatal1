@@ -101,7 +101,7 @@ function App() {
 
   // Cálculo de preço atualizado
   const calculatePrice = () => {
-    const PRECO_BASE = 280.0;
+    const PRECO_BASE = 30.0;
     
     let valorTotal = PRECO_BASE;
     
@@ -296,10 +296,10 @@ function App() {
       <section className="hero-section min-h-screen flex items-center justify-center text-white relative">
         <div className="text-center z-10 max-w-4xl mx-auto px-4">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
-            Veneza Water Park
+            Auto de Natal
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Em comemoração ao Dia da Criança, realizaremos um passeio especial para o Veneza Park Aquático!
+            Estamos nos aproximando do encerramento do ano letivo e, para celebrarmos juntos, convidamos você e sua família para o nosso Auto de Natal!
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -314,11 +314,11 @@ function App() {
           <div className="mt-12 flex justify-center items-center space-x-8 text-sm">
             <div className="flex items-center">
               <Calendar className="h-5 w-5 mr-2" />
-              18 de Outubro de 2025 - dia todo.
+              6 de Dezembro de 2025 - Às 14:00.
             </div>
             <div className="flex items-center">
               <MapPin className="h-5 w-5 mr-2" />
-              Veneza Water Park, Pernambuco.
+              Teatro Poti Cavalcanti - São Gonçalo do Amarante
             </div>
           </div>
         </div>
@@ -330,8 +330,12 @@ function App() {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 gradient-text">Sobre o Evento</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-             o Veneza Water Park é o maior parque aquático de Pernambuco. Com 90 mil metros quadrados de área, um complexo gastronômico para todos os gostos e mais de trinta atrações entre radicais e relaxantes, o parque compõe o equipamento turístico mais importante do estado.
-            </p>
+            O Auto de Natal é uma apresentação teatral que conta a história do nascimento de Jesus 
+de forma lúdica e emocionante. É uma tradição que mistura teatro, música e a magia do 
+Natal, onde as crianças dão vida aos personagens dessa história tão especial. Este ano, 
+nossos alunos prepararam um espetáculo lindo no Teatro Poti Cavalcanti para celebrar o 
+encerramento do ano letivo. 
+			</p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -344,15 +348,15 @@ function App() {
                 </div>
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-6 w-6 text-accent mt-1 flex-shrink-0" />
-                  <p>praça de alimentação com oito lanchonetes</p>
+                  <p>Espaço cultural no centro de São Gonçalo do Amarante</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-6 w-6 text-accent mt-1 flex-shrink-0" />
-                  <p>Posto médico que conta com médico, paramédico, enfermeira e ambulância de plantão</p>
+                  <p>Fechando o ano letivo com arte e emoção</p>
                 </div>
                 <div className="flex items-start space-x-3">
                   <CheckCircle className="h-6 w-6 text-accent mt-1 flex-shrink-0" />
-                  <p>Diversão, segurança e tranquilidade</p>
+                  <p>Espaço preparado para receber as famílias dos apresentadores</p>
                 </div>
               </div>
             </div>
@@ -1076,6 +1080,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
