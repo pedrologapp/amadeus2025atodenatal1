@@ -374,9 +374,9 @@ encerramento do ano letivo.
       <section id="itinerario" className="section-padding bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Sobre o passeio</h2>
+            <h2 className="text-4xl font-bold mb-4">Sobre o evento</h2>
             <p className="text-lg text-muted-foreground">
-              Confira as informações do nosso passeio
+              Confira as informações do nosso evento
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -390,10 +390,10 @@ encerramento do ano letivo.
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-center">
-                  Saída: 03h da manhã
+                  Entrada: 13:30 da tarde
                 </p>
                 <p className="text-sm text-center">
-                  Retorno previsto: 23h do mesmo dia
+                  Início das apresentações: 14:00
                 </p>
               </CardContent>
             </Card>
@@ -407,11 +407,12 @@ encerramento do ano letivo.
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-center">
-                  Veneza Water Park - Avenida Dr. Claudio José Gueiros Leite, 10050, Maria Farinha, Paulista – PE
+                  Teatro Poti Cavalcanti – Rua Alexandre Cavalcanti, s/n – Centro – São Gonçalo do Amarante/RN
                 </p>
               </CardContent>
             </Card>
-            <Card className="card-hover">
+             {/*
+			<Card className="card-hover">
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 p-3 bg-green-500/10 rounded-full w-fit">
                   <Utensils className="h-8 w-8 text-green-500" />
@@ -444,7 +445,7 @@ encerramento do ano letivo.
                 </ul>
               </CardContent>
             </Card>
-			  
+			   */}
           </div>
           {/*
           <div className="mt-12 text-center">
@@ -1080,6 +1081,7 @@ encerramento do ano letivo.
 }
 
 export default App;
+
 
 
 
