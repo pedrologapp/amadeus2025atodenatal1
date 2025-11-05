@@ -946,7 +946,7 @@ function App() {
                           <div className="flex items-center space-x-2">
                             <span className="text-lg font-bold">PIX</span>
                             <span className="text-sm">
-                              R$ {(280).toFixed(2).replace('.', ',')} (sem taxas)
+                              R$ {(30).toFixed(2).replace('.', ',')} (sem taxas)
                             </span>
                           </div>
                         </div>
@@ -1092,6 +1092,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
