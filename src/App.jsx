@@ -130,7 +130,7 @@ const calculatePrice = () => {
 
 // Adicione estas funções para controlar a quantidade:
 const increaseTickets = () => {
-  if (ticketQuantity < 4) {
+  if (ticketQuantity < 20) {
     setTicketQuantity(prev => prev + 1);
   }
 };
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
