@@ -976,7 +976,7 @@ const decreaseTickets = () => {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={increaseTickets}
-            disabled={ticketQuantity === 6}
+            disabled={ticketQuantity === 20}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
