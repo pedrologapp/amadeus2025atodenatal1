@@ -225,7 +225,7 @@ const decreaseTickets = () => {
 		  ticketQuantity: ticketQuantity, 
           amount: valorTotal,
           timestamp: new Date().toISOString(),
-          event: 'Amadeus-venezapark'
+          event: 'Amadeus-autonatalmatutino'
         })
       });
 
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
