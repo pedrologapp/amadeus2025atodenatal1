@@ -950,7 +950,7 @@ const decreaseTickets = () => {
   </h3>
   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
     <p className="text-sm text-blue-800 mb-3">
-      Cada ingresso custa R$ 30,00. Você pode comprar até 4 ingressos.
+      Cada ingresso custa R$ 30,00.
     </p>
     
     <div className="flex items-center justify-between">
@@ -976,7 +976,7 @@ const decreaseTickets = () => {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={increaseTickets}
-            disabled={ticketQuantity === 4}
+            disabled={ticketQuantity === 6}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -1183,6 +1183,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
