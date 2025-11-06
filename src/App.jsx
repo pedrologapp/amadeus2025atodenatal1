@@ -315,7 +315,7 @@ const decreaseTickets = () => {
             Auto de Natal
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
-            Estamos nos aproximando do encerramento do ano letivo e, para celebrarmos juntos, convidamos você e sua família para o nosso Auto de Natal! 
+            ESTE COMUNICADO É SOMENTE PARA OS ALUNOS DO TURNO MATUTINO.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -1205,6 +1205,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
