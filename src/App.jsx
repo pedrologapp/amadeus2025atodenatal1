@@ -6,6 +6,7 @@ import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
+import { supabase } from './supabaseClient'; // NOVO: Import do Supabase
 
 import { 
   MapPin, 
@@ -28,9 +29,11 @@ import {
   Minus,
   UserPlus,
   Utensils,
-  XCircle,      // <- Adicione este
-  AlertTriangle
+  XCircle,
+  AlertTriangle,
+  Search
 } from 'lucide-react';
+
 // Importando as imagens
 import interiorImage1 from './assets/happy1.JPG';
 import interiorImage2 from './assets/happy2.JPG';
@@ -57,17 +60,26 @@ function App() {
   const [cpfError, setCpfError] = useState('');
   const [cpfValid, setCpfValid] = useState(false);
 
+  // NOVO: Estados para busca de alunos no Supabase
+  const [studentSearch, setStudentSearch] = useState('');
+  const [studentsList, setStudentsList] = useState([]);
+  const [showStudentDropdown, setShowStudentDropdown] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Estado para quantidade de ingressos
+  const [ticketQuantity, setTicketQuantity] = useState(1);
+
   // Função para validar CPF
   const validarCPF = (cpf) => {
-    cpf = cpf.replace(/[^\d]/g, ''); // Remove caracteres não numéricos
+    cpf = cpf.replace(/[^\d]/g, '');
     
     if (cpf.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cpf)) return false; // CPF com todos dígitos iguais
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
     
     let soma = 0;
     let resto;
     
-    // Primeiro dígito verificador
     for (let i = 1; i <= 9; i++) {
       soma += parseInt(cpf.substring(i-1, i)) * (11 - i);
     }
@@ -75,7 +87,6 @@ function App() {
     if (resto === 10 || resto === 11) resto = 0;
     if (resto !== parseInt(cpf.substring(9, 10))) return false;
     
-    // Segundo dígito verificador
     soma = 0;
     for (let i = 1; i <= 10; i++) {
       soma += parseInt(cpf.substring(i-1, i)) * (12 - i);
@@ -91,7 +102,6 @@ function App() {
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Função para mostrar formulário
   const showInscricaoForm = () => {
     setShowForm(true);
     setTimeout(() => {
@@ -99,63 +109,132 @@ function App() {
     }, 100);
   };
 
-// Adicione este estado no início do componente, junto com os outros estados:
-const [ticketQuantity, setTicketQuantity] = useState(1);
+  // NOVO: Função para buscar alunos no Supabase
+  const searchStudents = async (searchTerm) => {
+    if (searchTerm.length < 2) {
+      setStudentsList([]);
+      setShowStudentDropdown(false);
+      return;
+    }
 
-// Substitua a função calculatePrice() por esta versão atualizada:
-const calculatePrice = () => {
-  const PRECO_BASE = 30.0;
-  
-  let valorTotal = PRECO_BASE * ticketQuantity; // Multiplica pela quantidade
-  
-  if (formData.paymentMethod === 'credit') {
-    let taxaPercentual = 0;
-    const taxaFixa = 0.49;
-    const parcelas = parseInt(formData.installments) || 1;
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('alunos')
+        .select('*')
+        .ilike('nome_completo', `%${searchTerm}%`)
+        .order('nome_completo')
+        .limit(10);
+
+      if (error) throw error;
+      
+      setStudentsList(data || []);
+      setShowStudentDropdown(data && data.length > 0);
+    } catch (error) {
+      console.error('Erro ao buscar alunos:', error);
+      setStudentsList([]);
+      setShowStudentDropdown(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // NOVO: Função para selecionar um aluno
+  const selectStudent = (student) => {
+    setSelectedStudent(student);
+    setFormData(prev => ({
+      ...prev,
+      studentName: student.nome_completo,
+      studentGrade: student.serie,
+      studentClass: student.turma
+    }));
+    setStudentSearch(student.nome_completo);
+    setShowStudentDropdown(false);
+    setStudentsList([]);
+  };
+
+  // NOVO: Função para lidar com mudança no campo de busca
+  const handleStudentSearchChange = (e) => {
+    const value = e.target.value;
+    setStudentSearch(value);
+    searchStudents(value);
     
-    if (parcelas === 1) {
-      taxaPercentual = 0.0299;
-    } else if (parcelas >= 2 && parcelas <= 4) {
-      taxaPercentual = 0.0349;
-    } else {
-      taxaPercentual = 0.0399;
+    if (!value) {
+      setSelectedStudent(null);
+      setFormData(prev => ({
+        ...prev,
+        studentName: '',
+        studentGrade: '',
+        studentClass: ''
+      }));
+      setShowStudentDropdown(false);
+    }
+  };
+
+  // NOVO: Limpar seleção de aluno
+  const clearStudentSelection = () => {
+    setSelectedStudent(null);
+    setStudentSearch('');
+    setFormData(prev => ({
+      ...prev,
+      studentName: '',
+      studentGrade: '',
+      studentClass: ''
+    }));
+    setShowStudentDropdown(false);
+    setStudentsList([]);
+  };
+
+  const calculatePrice = () => {
+    const PRECO_BASE = 30.0;
+    let valorTotal = PRECO_BASE * ticketQuantity;
+    
+    if (formData.paymentMethod === 'credit') {
+      let taxaPercentual = 0;
+      const taxaFixa = 0.49;
+      const parcelas = parseInt(formData.installments) || 1;
+      
+      if (parcelas === 1) {
+        taxaPercentual = 0.0299;
+      } else if (parcelas >= 2 && parcelas <= 4) {
+        taxaPercentual = 0.0349;
+      } else {
+        taxaPercentual = 0.0399;
+      }
+      
+      valorTotal = valorTotal + (valorTotal * taxaPercentual) + taxaFixa;
     }
     
-    valorTotal = valorTotal + (valorTotal * taxaPercentual) + taxaFixa;
-  }
-  
-  const valorParcela = valorTotal / (parseInt(formData.installments) || 1);
-  return { valorTotal, valorParcela };
-};
+    const valorParcela = valorTotal / (parseInt(formData.installments) || 1);
+    return { valorTotal, valorParcela };
+  };
 
-// Adicione estas funções para controlar a quantidade:
-const increaseTickets = () => {
-  if (ticketQuantity < 20) {
-    setTicketQuantity(prev => prev + 1);
-  }
-};
+  const increaseTickets = () => {
+    if (ticketQuantity < 20) {
+      setTicketQuantity(prev => prev + 1);
+    }
+  };
 
-const decreaseTickets = () => {
-  if (ticketQuantity > 1) {
-    setTicketQuantity(prev => prev - 1);
-  }
-};
+  const decreaseTickets = () => {
+    if (ticketQuantity > 1) {
+      setTicketQuantity(prev => prev - 1);
+    }
+  };
+
   const { valorTotal, valorParcela } = calculatePrice();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Aplicar máscara de CPF
     if (name === 'cpf') {
       const cpfValue = value
-        .replace(/\D/g, '') // Remove tudo que não é dígito
-        .replace(/(\d{3})(\d)/, '$1.$2') // Adiciona primeiro ponto
-        .replace(/(\d{3})(\d)/, '$1.$2') // Adiciona segundo ponto
-        .replace(/(\d{3})(\d{1,2})$/, '$1-$2'); // Adiciona hífen
+        .replace(/\D/g, '')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 
       setFormData(prev => ({ ...prev, [name]: cpfValue }));
       
-      // Validação em tempo real do CPF
       const cpfSemMascara = cpfValue.replace(/[^\d]/g, '');
       
       if (cpfSemMascara.length === 0) {
@@ -178,8 +257,12 @@ const decreaseTickets = () => {
     }
   };
 
-  // Função de validação antes do submit
   const validateForm = () => {
+    if (!selectedStudent) {
+      alert('Por favor, selecione um aluno da lista.');
+      return false;
+    }
+
     const cpfSemMascara = formData.cpf.replace(/[^\d]/g, '');
     
     if (!cpfSemMascara || cpfSemMascara.length !== 11) {
@@ -198,7 +281,6 @@ const decreaseTickets = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validar formulário antes de enviar
     if (!validateForm()) {
       return;
     }
@@ -206,7 +288,6 @@ const decreaseTickets = () => {
     setIsProcessing(true);
 
     try {  
-      // Enviar dados para o webhook do n8n
       const response = await fetch('https://webhook.escolaamadeus.com/webhook/amadeuseventos', {
         method: 'POST',
         headers: {
@@ -222,7 +303,7 @@ const decreaseTickets = () => {
           phone: formData.phone,
           paymentMethod: formData.paymentMethod,
           installments: formData.installments,
-		  ticketQuantity: ticketQuantity, 
+          ticketQuantity: ticketQuantity, 
           amount: valorTotal,
           timestamp: new Date().toISOString(),
           event: 'Amadeus-autonatalmatutino'
@@ -230,20 +311,16 @@ const decreaseTickets = () => {
       });
 
       if (response.ok) {
-          // Pegar a resposta do n8n PRIMEIRO
-          const responseData = await response.json();
-          console.log('Resposta do n8n:', responseData); // Para debug
-          
-          // Verificar se houve erro retornado pelo n8n
-          if (responseData.success === false) {
-            alert(responseData.message || 'Erro ao processar dados. Tente novamente.');
-            return;
-          }
-          
-          // Mostrar tela de sucesso
+        const responseData = await response.json();
+        console.log('Resposta do n8n:', responseData);
+        
+        if (responseData.success === false) {
+          alert(responseData.message || 'Erro ao processar dados. Tente novamente.');
+          return;
+        }
+        
         setInscriptionSuccess(true);
   
-        // Redirecionar para o Asaas após 2 segundos
         setTimeout(() => {
           if (responseData.paymentUrl) {
             window.location.href = responseData.paymentUrl;
@@ -291,7 +368,6 @@ const decreaseTickets = () => {
 
   return (
     <div className="min-h-screen smooth-scroll">
-      {/* Header/Navigation */}
       <header className="fixed top-0 w-full bg-white/95 backdrop-blur-sm z-50 border-b">
         <nav className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -308,7 +384,6 @@ const decreaseTickets = () => {
         </nav>
       </header>
 
-      {/* Hero Section */}
       <section className="hero-section min-h-screen flex items-center justify-center text-white relative">
         <div className="text-center z-10 max-w-4xl mx-auto px-4">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 animate-fade-in">
@@ -336,7 +411,7 @@ const decreaseTickets = () => {
               <MapPin className="h-5 w-5 mr-2" />
               Teatro Poti Cavalcanti - São Gonçalo do Amarante
             </div>
-			<div className="flex items-center">
+            <div className="flex items-center">
               <MapPin className="h-5 w-5 mr-2" />
               Esse link é apenas para os alunos do turno matutino.
             </div>
@@ -344,18 +419,17 @@ const decreaseTickets = () => {
         </div>
       </section>
 
-      {/* Sobre o Passeio */}
       <section id="sobre" className="section-padding bg-white">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-4 gradient-text">Sobre o Evento</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
             O Auto de Natal é uma apresentação teatral que conta a história do nascimento de Jesus 
-			de forma lúdica e emocionante. É uma tradição que mistura teatro, música e a magia do 
-			Natal, onde as crianças dão vida aos personagens dessa história tão especial. Este ano, 
-			nossos alunos prepararam um espetáculo lindo no Teatro Poti Cavalcanti para celebrar o 
-			encerramento do ano letivo. 
-			</p>
+            de forma lúdica e emocionante. É uma tradição que mistura teatro, música e a magia do 
+            Natal, onde as crianças dão vida aos personagens dessa história tão especial. Este ano, 
+            nossos alunos prepararam um espetáculo lindo no Teatro Poti Cavalcanti para celebrar o 
+            encerramento do ano letivo. 
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -389,8 +463,6 @@ const decreaseTickets = () => {
         </div>
       </section>
 
-      
-    {/* Itinerário */}
       <section id="itinerario" className="section-padding bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
@@ -423,7 +495,6 @@ const decreaseTickets = () => {
                   <MapPin className="h-8 w-8 text-accent" />
                 </div>
                 <CardTitle>Local</CardTitle>
-                {/*   <CardDescription>Atividades e diversão</CardDescription>  */}
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-center">
@@ -431,53 +502,10 @@ const decreaseTickets = () => {
                 </p>
               </CardContent>
             </Card>
-             {/*
-			<Card className="card-hover">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 bg-green-500/10 rounded-full w-fit">
-                  <Utensils className="h-8 w-8 text-green-500" />
-                </div>
-                <CardTitle>Lanches Permitidos</CardTitle>
-                <CardDescription>Para entrada no parque</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm list-disc list-inside space-y-1 text-left">
-                  <li>Biscoitos, salgadinhos, sucos de caixinha e frutas</li>
-                  <li>Bolos (comemorativos ou em fatias)</li>
-                  <li>Água mineral em garrafas próprias</li>
-                  <li>Refrigerantes em lata</li>
-                  <li>Todos os itens devem ser transportados em bolsas ou bolsas térmicas</li>
-                </ul>
-              </CardContent>
-            </Card>
-            <Card className="card-hover">
-              <CardHeader className="text-center">
-				<div className="mx-auto mb-4 p-3 bg-red-500/10 rounded-full w-fit">
- 					 <XCircle className="h-8 w-8 text-red-500" />
-					</div>
-                <CardTitle>NÃO é Permitidos</CardTitle>
-                <CardDescription>Regras</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="text-sm list-disc list-inside space-y-1 text-left">
-                  <li>Não é permitido o manuseio de alimentos in natura</li>
-                  <li>Não serão aceitos: embalagens não industriais, recipientes ou embalagens de vidro, coolers, isopores, garrafas PET (exceto água), objetos cortantes ou perfurantes.</li>
-                </ul>
-              </CardContent>
-            </Card>
-			   */}
           </div>
-          {/*
-          <div className="mt-12 text-center">
-            <div className="inline-flex items-center space-x-2 bg-white p-4 rounded-lg shadow-sm">
-              <Bus className="h-5 w-5 text-primary" />
-              <span className="font-medium">Término previsto às 17:00</span>
-            </div>
-          </div>
-          */}
         </div>
       </section>
-  {/* Documentação */}
+
       <section id="documentacao" className="section-padding bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
@@ -486,8 +514,7 @@ const decreaseTickets = () => {
 
           <div className="mt-8 p-6 bg-accent/10 rounded-lg border border-accent/20">
             <div className="space-y-4">
-              
-			<div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="text-sm">
@@ -495,7 +522,6 @@ const decreaseTickets = () => {
                   </p>
                 </div>
               </div>
-
               <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
@@ -512,7 +538,7 @@ const decreaseTickets = () => {
                   </p>
                 </div>
               </div>    
-			 <div className="flex items-start space-x-3">
+              <div className="flex items-start space-x-3">
                 <div className="w-2 h-2 bg-accent rounded-full mt-2 flex-shrink-0"></div>
                 <div>
                   <p className="text-sm">
@@ -520,109 +546,11 @@ const decreaseTickets = () => {
                   </p>
                 </div>
               </div>  
-          
             </div>
           </div>
         </div>
       </section>
 
-				{/* Alimentação Opcional 
-      <section id="alimentacao" className="section-padding bg-white">
-        <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Alimentação Opcional</h2>
-			  <p className="text-lg text-muted-foreground">
-              Esses são os valores do Veneza Park
-            </p>
-          </div>
-
-		     <Card className="bg-yellow-50 border-yellow-200">
-            <CardContent className="p-6">
-              <div className="flex items-start space-x-3 mb-4">
-                <Shield className="h-6 w-6 text-yellow-600 mt-1 flex-shrink-0" />
-                <div>
-                  <h3 className="font-semibold text-yellow-800 mb-2">Informações Importantes</h3>
-                  <div className="space-y-2 text-sm text-yellow-700">
-                    <p>• Os kits de alimentação são <strong>opcionais</strong> e devem ser pagos separadamente</p>
-                    <p>• O pagamento deverá ser feito <strong>diretamente na escola</strong></p>
-                    <p>• Prazo para pagamento: até <strong>3 dias úteis antes da visita</strong></p>
-                    <p>• Você pode escolher quantos kits desejar ou nenhum</p>
-                    <p>• Também é possível levar seus próprios lanches (conforme regras do parque)</p>
-                  </div>
-                </div>
-              </div>
-              <div className="text-center pt-4 border-t border-yellow-200">
-                <p className="text-sm font-medium text-yellow-800">
-                  Para contratar os kits de alimentação, procure a secretaria da escola após confirmar sua inscrição no passeio
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <Card className="card-hover border-orange-200">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 bg-orange-100 rounded-full w-fit">
-                  <Utensils className="h-8 w-8 text-orange-600" />
-                </div>
-                <CardTitle className="text-orange-800">Kit Almoço Grupo</CardTitle>
-                <CardDescription>Self service até 1kg</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-orange-600 mb-2">R$ 75,00</div>
-                <p className="text-sm text-muted-foreground mb-4">por pessoa</p>
-                <ul className="text-sm space-y-1 text-left">
-                  <li>• Self service (até 1kg)</li>
-                  <li>• Loja Veneza Sabores</li>
-                  <li>• 1 refrigerante em lata ou suco Del Valle</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover border-green-200">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
-                  <Utensils className="h-8 w-8 text-green-600" />
-                </div>
-                <CardTitle className="text-green-800">Kit Lanche 1</CardTitle>
-                <CardDescription>Opção completa</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-green-600 mb-2">R$ 15,00</div>
-                <p className="text-sm text-muted-foreground mb-4">por pessoa</p>
-                <ul className="text-sm space-y-1 text-left">
-                  <li>• Coxinha</li>
-                  <li>• Fatia de pizza mussarela</li>
-                  <li>• Espetinho de carne ou frango</li>
-                  <li>• 1 refrigerante em lata</li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card className="card-hover border-blue-200">
-              <CardHeader className="text-center">
-                <div className="mx-auto mb-4 p-3 bg-blue-100 rounded-full w-fit">
-                  <Utensils className="h-8 w-8 text-blue-600" />
-                </div>
-                <CardTitle className="text-blue-800">Kit Lanche 2</CardTitle>
-                <CardDescription>Hambúrguer</CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <div className="text-2xl font-bold text-blue-600 mb-2">R$ 20,00</div>
-                <p className="text-sm text-muted-foreground mb-4">por pessoa</p>
-                <ul className="text-sm space-y-1 text-left">
-                  <li>• Cheeseburguer</li>
-                  <li>• 1 refrigerante em lata</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-     
-        </div>
-      </section>
-		*/}
-      {/* Custos e Pagamento */}
       <section id="custos" className="section-padding bg-white">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
@@ -636,14 +564,6 @@ const decreaseTickets = () => {
             <CardHeader className="text-center">
               <CardTitle className="text-3xl text-primary">R$ 30,00</CardTitle>
               <CardDescription>por RESPONSÁVEL</CardDescription>
-              {/* 
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <UserPlus className="inline h-4 w-4 mr-1" />
-                  <strong>Acompanhantes adicionais:</strong> R$ 20,00 cada 
-                </p>
-              </div>
-             */}
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
@@ -705,9 +625,7 @@ const decreaseTickets = () => {
             </CardContent>
           </Card>
 
-			
-
-          {/* FORMULÁRIO DE INSCRIÇÃO - SHOW/HIDE */}
+          {/* FORMULÁRIO COM BUSCA DE ALUNOS */}
           {showForm && (
             <Card id="formulario-inscricao" className="border-orange-200 bg-orange-50/30">
               <CardHeader>
@@ -722,85 +640,113 @@ const decreaseTickets = () => {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   
-                  {/* Dados do Aluno */}
+                  {/* NOVO: BUSCA DE ALUNO */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <User className="mr-2 h-5 w-5" />
-                      Dados do Aluno
+                      <Search className="mr-2 h-5 w-5" />
+                      Buscar Aluno
                     </h3>
                     <div className="space-y-4">
-                      <div>
-                        <Label htmlFor="studentName">Nome Completo do Aluno *</Label>
+                      <div className="relative">
+                        <Label htmlFor="studentSearch">Digite o nome do aluno *</Label>
                         <Input
-                          id="studentName"
-                          name="studentName"
-                          value={formData.studentName}
-                          onChange={handleInputChange}
+                          id="studentSearch"
+                          name="studentSearch"
+                          value={studentSearch}
+                          onChange={handleStudentSearchChange}
+                          onFocus={() => studentsList.length > 0 && setShowStudentDropdown(true)}
                           required
-                          placeholder="Nome completo do aluno"
+                          placeholder="Digite pelo menos 2 letras para buscar..."
+                          autoComplete="off"
+                          className={selectedStudent ? 'border-green-500 bg-green-50' : ''}
                         />
+                        
+                        {isSearching && (
+                          <div className="absolute right-3 top-9">
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                          </div>
+                        )}
+                        
+                        {selectedStudent && (
+                          <div className="mt-2 p-3 bg-green-100 rounded border border-green-300 flex items-center justify-between">
+                            <div>
+                              <span className="text-sm text-green-800 font-medium block">
+                                ✓ Aluno selecionado: {selectedStudent.nome_completo}
+                              </span>
+                              <span className="text-xs text-green-700">
+                                {selectedStudent.serie} - Turma {selectedStudent.turma}
+                              </span>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={clearStudentSelection}
+                              className="h-8 text-red-600 hover:text-red-800 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Dropdown de resultados */}
+                        {showStudentDropdown && studentsList.length > 0 && !selectedStudent && (
+                          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                            {studentsList.map((student) => (
+                              <div
+                                key={student.id}
+                                onClick={() => selectStudent(student)}
+                                className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors"
+                              >
+                                <div className="font-medium text-sm">{student.nome_completo}</div>
+                                <div className="text-xs text-gray-600 mt-1">
+                                  {student.serie} - Turma {student.turma}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {studentSearch.length >= 2 && studentsList.length === 0 && !selectedStudent && !isSearching && (
+                          <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200">
+                            <p className="text-sm text-yellow-800 flex items-center">
+                              <AlertTriangle className="h-4 w-4 mr-2" />
+                              Nenhum aluno encontrado. Verifique o nome digitado.
+                            </p>
+                          </div>
+                        )}
+
+                        {studentSearch.length < 2 && studentSearch.length > 0 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Digite pelo menos 2 letras para buscar
+                          </p>
+                        )}
                       </div>
+
+                      {/* Campos desabilitados preenchidos automaticamente */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="studentGrade">Série do Aluno *</Label>
-                          <select
+                          <Input
                             id="studentGrade"
                             name="studentGrade"
                             value={formData.studentGrade}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                          >
-                            <option value="">Selecione a série</option>
-                       
-							<option value="Maternal II">Maternal II</option>
-                            <option value="Maternal III">Maternal III</option>
-                            <option value="Grupo 4">Grupo 4</option>
-                            <option value="Grupo 5">Grupo 5</option>
-                          
-						    <option value="1º Ano">1º Ano</option>
-                            <option value="2º Ano">2º Ano</option>
-                            <option value="3º Ano">3º Ano</option>
-							   
-							<option value="4º Ano">4º Ano</option>
-							<option value="5º Ano">5º Ano</option>
-							  {/* 
-							<option value="6º Ano">6º Ano</option>
-							<option value="7º Ano">7º Ano</option>
-							<option value="8º Ano">8º Ano</option>
-							<option value="9º Ano">9º Ano</option>
-							*/}
-                          </select>
+                            disabled
+                            className="bg-gray-100 cursor-not-allowed"
+                            placeholder="Será preenchido automaticamente"
+                          />
                         </div>
-                        {/* 
                         <div>
                           <Label htmlFor="studentClass">Turma do Aluno *</Label>
                           <Input
                             id="studentClass"
                             name="studentClass"
                             value={formData.studentClass}
-                            onChange={handleInputChange}
-                            required
-                            placeholder="Ex: A, B, C"
+                            disabled
+                            className="bg-gray-100 cursor-not-allowed"
+                            placeholder="Será preenchido automaticamente"
                           />
                         </div>
-                        Dados do Aluno */}
-                        <div>
-                          <Label htmlFor="studentClass">Turma do Aluno *</Label>
-                          <select
-                            id="studentClass"
-                            name="studentClass"
-                            value={formData.studentClass}
-                            onChange={handleInputChange}
-                            required
-                            className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                          >
-                            <option value="">Selecione a turma</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                          </select>
-                        </div>                       
                       </div>
                     </div>
                   </div>
@@ -882,254 +828,194 @@ const decreaseTickets = () => {
                     </div>
                   </div>
 
-                  {/* Seção de Acompanhantes Adicionais 
+                  {/* Quantidade de Ingressos */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4 flex items-center">
-                      <UserPlus className="mr-2 h-5 w-5" />
-                      Acompanhantes Adicionais
+                      <Users className="mr-2 h-5 w-5" />
+                      Quantidade de Ingressos
                     </h3>
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
                       <p className="text-sm text-blue-800 mb-3">
-                        O pacote básico já inclui <strong>pai, mãe e filho</strong>. Você pode adicionar até 5 acompanhantes extras por apenas R$ 20,00 cada.
+                        Cada ingresso custa R$ 30,00.
                       </p>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                          <Label className="text-sm font-medium">Quantidade de acompanhantes adicionais:</Label>
+                          <Label className="text-sm font-medium">Quantidade de ingressos:</Label>
                           <div className="flex items-center space-x-2">
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={decreaseCompanions}
-                              disabled={formData.additionalCompanions === 0}
+                              onClick={decreaseTickets}
+                              disabled={ticketQuantity === 1}
                             >
                               <Minus className="h-4 w-4" />
                             </Button>
-                            <span className="w-8 text-center font-semibold">
-                              {formData.additionalCompanions}
+                            <span className="w-8 text-center font-semibold text-lg">
+                              {ticketQuantity}
                             </span>
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
                               className="h-8 w-8 p-0"
-                              onClick={increaseCompanions}
-                              disabled={formData.additionalCompanions === 5}
+                              onClick={increaseTickets}
+                              disabled={ticketQuantity === 20}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
                         
-                        {formData.additionalCompanions > 0 && (
-                          <div className="text-sm">
-                            <span className="text-green-600 font-medium">
-                              + R$ {(formData.additionalCompanions * 20).toFixed(2).replace('.', ',')}
-                            </span>
-                          </div>
-                        )}
+                        <div className="text-sm">
+                          <span className="text-gray-600">Subtotal: </span>
+                          <span className="text-green-600 font-bold text-lg">
+                            R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')}
+                          </span>
+                        </div>
                       </div>
                       
-                      {formData.additionalCompanions > 0 && (
-                        <div className="mt-3 text-xs text-blue-700">
-                          <strong>Total de pessoas no evento:</strong> {3 + formData.additionalCompanions} pessoas
-                          <br />
-                          <strong>Composição:</strong> Aluno + Pai + Mãe + {formData.additionalCompanions} acompanhante{formData.additionalCompanions > 1 ? 's' : ''} adicional{formData.additionalCompanions > 1 ? 'is' : ''}
+                      {ticketQuantity >= 3 && ticketQuantity < 6 && (
+                        <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
+                          <p className="text-xs text-green-800 font-medium flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Para 3 ou mais ingressos você pode parcelar em até 2x no cartão!
+                          </p>
+                        </div>
+                      )}
+
+                      {ticketQuantity >= 6 && (
+                        <div className="mt-3 p-2 bg-blue-100 rounded border border-blue-300">
+                          <p className="text-xs text-blue-800 font-medium flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            🎉 Para 6 ou mais ingressos você pode parcelar em até 3x no cartão!
+                          </p>
                         </div>
                       )}
                     </div>
                   </div>
-                  */}
-                  {/* Quantidade de Ingressos */}
-<div>
-  <h3 className="text-lg font-semibold mb-4 flex items-center">
-    <Users className="mr-2 h-5 w-5" />
-    Quantidade de Ingressos
-  </h3>
-  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-4">
-    <p className="text-sm text-blue-800 mb-3">
-      Cada ingresso custa R$ 30,00.
-    </p>
-    
-    <div className="flex items-center justify-between">
-      <div className="flex items-center space-x-4">
-        <Label className="text-sm font-medium">Quantidade de ingressos:</Label>
-        <div className="flex items-center space-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={decreaseTickets}
-            disabled={ticketQuantity === 1}
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          <span className="w-8 text-center font-semibold text-lg">
-            {ticketQuantity}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={increaseTickets}
-            disabled={ticketQuantity === 20}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      <div className="text-sm">
-        <span className="text-gray-600">Subtotal: </span>
-        <span className="text-green-600 font-bold text-lg">
-          R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')}
-        </span>
-      </div>
-    </div>
-    
-{ticketQuantity >= 3 && ticketQuantity < 6 && (
-  <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
-    <p className="text-xs text-green-800 font-medium flex items-center">
-      <CheckCircle className="h-4 w-4 mr-1" />
-      Para 3 ou mais ingressos você pode parcelar em até 2x no cartão!
-    </p>
-  </div>
-)}
 
-{ticketQuantity >= 6 && (
-  <div className="mt-3 p-2 bg-blue-100 rounded border border-blue-300">
-    <p className="text-xs text-blue-800 font-medium flex items-center">
-      <CheckCircle className="h-4 w-4 mr-1" />
-      🎉 Para 6 ou mais ingressos você pode parcelar em até 3x no cartão!
-    </p>
-  </div>
-)}
-  </div>
-</div>
+                  {/* Método de Pagamento */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4">Método de Pagamento*</h3>
+                    
+                    <div className="space-y-3 mb-6">
+                      <div 
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          formData.paymentMethod === 'pix' 
+                            ? 'border-orange-400 bg-orange-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'pix', installments: 1 }))}
+                      >
+                        <div className="flex items-center">
+                          <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                            formData.paymentMethod === 'pix' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
+                          }`}>
+                            {formData.paymentMethod === 'pix' && (
+                              <div className="w-full h-full rounded-full bg-orange-400"></div>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-lg font-bold">PIX</span>
+                            <span className="text-sm">
+                              R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')} (sem taxas)
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-{/* Método de Pagamento */}
-<div>
-  <h3 className="text-lg font-semibold mb-4">Método de Pagamento*</h3>
-  
-  <div className="space-y-3 mb-6">
-    <div 
-      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-        formData.paymentMethod === 'pix' 
-          ? 'border-orange-400 bg-orange-50' 
-          : 'border-gray-200 hover:border-gray-300'
-      }`}
-      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'pix', installments: 1 }))}
-    >
-      <div className="flex items-center">
-        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-          formData.paymentMethod === 'pix' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
-        }`}>
-          {formData.paymentMethod === 'pix' && (
-            <div className="w-full h-full rounded-full bg-orange-400"></div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-bold">PIX</span>
-          <span className="text-sm">
-            R$ {(30 * ticketQuantity).toFixed(2).replace('.', ',')} (sem taxas)
-          </span>
-        </div>
-      </div>
-    </div>
+                      <div 
+                        className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                          formData.paymentMethod === 'credit' 
+                            ? 'border-orange-400 bg-orange-50' 
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'credit' }))}
+                      >
+                        <div className="flex items-center">
+                          <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                            formData.paymentMethod === 'credit' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
+                          }`}>
+                            {formData.paymentMethod === 'credit' && (
+                              <div className="w-full h-full rounded-full bg-orange-400"></div>
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm">💳</span>
+                              <span className="text-sm font-medium">Cartão de Crédito</span>
+                            </div>
+                            {ticketQuantity >= 3 && ticketQuantity < 6 && (
+                              <div className="text-xs text-green-600 ml-6 font-medium">
+                                ✓ Parcele em até 2x sem juros
+                              </div>
+                            )}
+                            {ticketQuantity >= 6 && (
+                              <div className="text-xs text-blue-600 ml-6 font-medium">
+                                ✓ Parcele em até 3x sem juros
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-    <div 
-      className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-        formData.paymentMethod === 'credit' 
-          ? 'border-orange-400 bg-orange-50' 
-          : 'border-gray-200 hover:border-gray-300'
-      }`}
-      onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'credit' }))}
-    >
-      <div className="flex items-center">
-        <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
-          formData.paymentMethod === 'credit' ? 'border-orange-400 bg-orange-400' : 'border-gray-300'
-        }`}>
-          {formData.paymentMethod === 'credit' && (
-            <div className="w-full h-full rounded-full bg-orange-400"></div>
-          )}
-        </div>
-        <div>
-  <div className="flex items-center space-x-2">
-    <span className="text-sm">💳</span>
-    <span className="text-sm font-medium">Cartão de Crédito</span>
-  </div>
-  {ticketQuantity >= 3 && ticketQuantity < 6 && (
-    <div className="text-xs text-green-600 ml-6 font-medium">
-      ✓ Parcele em até 2x sem juros
-    </div>
-  )}
-  {ticketQuantity >= 6 && (
-    <div className="text-xs text-blue-600 ml-6 font-medium">
-      ✓ Parcele em até 3x sem juros
-    </div>
-  )}
-</div>
-      </div>
-    </div>
-  </div>
+                    {formData.paymentMethod === 'credit' && (
+                      <div className="mb-6">
+                        <Label className="text-sm font-medium">Número de Parcelas</Label>
+                        <select
+                          value={formData.installments}
+                          onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
+                          className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
+                        >
+                          <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>
+                          {ticketQuantity >= 3 && (
+                            <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>
+                          )}
+                          {ticketQuantity >= 6 && (
+                            <option value={3}>3x de R$ {(valorTotal / 3).toFixed(2).replace('.', ',')}</option>
+                          )}
+                        </select>
+                        {ticketQuantity < 3 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            * Parcelamento disponível apenas para 3 ou mais ingressos
+                          </p>
+                        )}
+                        {ticketQuantity >= 3 && ticketQuantity < 6 && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            * Parcelamento em 3x disponível para 6 ou mais ingressos
+                          </p>
+                        )}
+                      </div>
+                    )}
 
-  {formData.paymentMethod === 'credit' && (
-  <div className="mb-6">
-    <Label className="text-sm font-medium">Número de Parcelas</Label>
-    <select
-      value={formData.installments}
-      onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
-      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
-    >
-      <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>
-      {ticketQuantity >= 3 && (
-        <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>
-      )}
-      {ticketQuantity >= 6 && (
-        <option value={3}>3x de R$ {(valorTotal / 3).toFixed(2).replace('.', ',')}</option>
-      )}
-    </select>
-    {ticketQuantity < 3 && (
-      <p className="text-xs text-gray-500 mt-1">
-        * Parcelamento disponível apenas para 3 ou mais ingressos
-      </p>
-    )}
-    {ticketQuantity >= 3 && ticketQuantity < 6 && (
-      <p className="text-xs text-gray-500 mt-1">
-        * Parcelamento em 3x disponível para 6 ou mais ingressos
-      </p>
-    )}
-  </div>
-)}
-
-  {/* Valor Total */}
-  <div className="bg-orange-100 p-4 rounded-lg border border-orange-200">
-    <div className="text-center">
-      <h4 className="text-lg font-bold text-orange-800 mb-1">Valor Total</h4>
-      <div className="text-sm text-gray-600 mb-1">
-        {ticketQuantity} ingresso{ticketQuantity > 1 ? 's' : ''} × R$ 30,00
-      </div>
-      <div className="text-2xl font-bold text-orange-900">
-        R$ {valorTotal.toFixed(2).replace('.', ',')}
-      </div>
-      {formData.paymentMethod === 'credit' && formData.installments > 1 && (
-        <div className="text-sm text-orange-700 mt-1">
-          {formData.installments}x de R$ {valorParcela.toFixed(2).replace('.', ',')}
-        </div>
-      )}
-    </div>
-  </div>
-</div>
+                    {/* Valor Total */}
+                    <div className="bg-orange-100 p-4 rounded-lg border border-orange-200">
+                      <div className="text-center">
+                        <h4 className="text-lg font-bold text-orange-800 mb-1">Valor Total</h4>
+                        <div className="text-sm text-gray-600 mb-1">
+                          {ticketQuantity} ingresso{ticketQuantity > 1 ? 's' : ''} × R$ 30,00
+                        </div>
+                        <div className="text-2xl font-bold text-orange-900">
+                          R$ {valorTotal.toFixed(2).replace('.', ',')}
+                        </div>
+                        {formData.paymentMethod === 'credit' && formData.installments > 1 && (
+                          <div className="text-sm text-orange-700 mt-1">
+                            {formData.installments}x de R$ {valorParcela.toFixed(2).replace('.', ',')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
 
                   {/* Botão de Envio */}
                   <Button 
                     type="submit" 
                     className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-bold"
-                    disabled={isProcessing}
+                    disabled={isProcessing || !selectedStudent}
                   >
                     {isProcessing ? (
                       <>
@@ -1151,7 +1037,6 @@ const decreaseTickets = () => {
         </div>
       </section>
 
-      {/* Contato */}
       <section id="contato" className="section-padding bg-muted/30">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
@@ -1189,14 +1074,13 @@ const decreaseTickets = () => {
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-blue-900 text-white py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm">
             © 2025 Escola Centro Educacional Amadeus. Todos os direitos reservados.
           </p>
           <p className="text-xs mt-2 opacity-80">
-            Passeio ao Game Station no Partage Shopping - 15 de Agosto de 2025
+            Auto de Natal - Teatro Poti Cavalcanti - 6 de Dezembro de 2025
           </p>
         </div>
       </footer>
@@ -1205,7 +1089,6 @@ const decreaseTickets = () => {
 }
 
 export default App;
-
 
 
 
