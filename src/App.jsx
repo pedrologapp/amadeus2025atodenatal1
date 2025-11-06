@@ -414,6 +414,7 @@ const decreaseTickets = () => {
                 </p>
                 <p className="text-sm text-center">
                   Início das apresentações: 14:00
+				  Termino das apresentações: 16:00
                 </p>
               </CardContent>
             </Card>
@@ -1183,6 +1184,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
