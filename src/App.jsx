@@ -991,14 +991,23 @@ const decreaseTickets = () => {
       </div>
     </div>
     
-    {ticketQuantity >= 3 && (
-      <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
-        <p className="text-xs text-green-800 font-medium flex items-center">
-          <CheckCircle className="h-4 w-4 mr-1" />
-          Para 3 ou mais ingressos você pode parcelar em até 2x no cartão!
-        </p>
-      </div>
-    )}
+{ticketQuantity >= 3 && ticketQuantity < 6 && (
+  <div className="mt-3 p-2 bg-green-100 rounded border border-green-300">
+    <p className="text-xs text-green-800 font-medium flex items-center">
+      <CheckCircle className="h-4 w-4 mr-1" />
+      Para 3 ou mais ingressos você pode parcelar em até 2x no cartão!
+    </p>
+  </div>
+)}
+
+{ticketQuantity >= 6 && (
+  <div className="mt-3 p-2 bg-blue-100 rounded border border-blue-300">
+    <p className="text-xs text-blue-800 font-medium flex items-center">
+      <CheckCircle className="h-4 w-4 mr-1" />
+      🎉 Para 6 ou mais ingressos você pode parcelar em até 3x no cartão!
+    </p>
+  </div>
+)}
   </div>
 </div>
 
@@ -1049,40 +1058,53 @@ const decreaseTickets = () => {
           )}
         </div>
         <div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">💳</span>
-            <span className="text-sm font-medium">Cartão de Crédito</span>
-          </div>
-          {ticketQuantity >= 3 && (
-            <div className="text-xs text-green-600 ml-6 font-medium">
-              ✓ Parcele em até 2x sem juros
-            </div>
-          )}
-        </div>
+  <div className="flex items-center space-x-2">
+    <span className="text-sm">💳</span>
+    <span className="text-sm font-medium">Cartão de Crédito</span>
+  </div>
+  {ticketQuantity >= 3 && ticketQuantity < 6 && (
+    <div className="text-xs text-green-600 ml-6 font-medium">
+      ✓ Parcele em até 2x sem juros
+    </div>
+  )}
+  {ticketQuantity >= 6 && (
+    <div className="text-xs text-blue-600 ml-6 font-medium">
+      ✓ Parcele em até 3x sem juros
+    </div>
+  )}
+</div>
       </div>
     </div>
   </div>
 
   {formData.paymentMethod === 'credit' && (
-    <div className="mb-6">
-      <Label className="text-sm font-medium">Número de Parcelas</Label>
-      <select
-        value={formData.installments}
-        onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
-        className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
-      >
-        <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>
-        {ticketQuantity >= 3 && (
-          <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>
-        )}
-      </select>
-      {ticketQuantity < 3 && (
-        <p className="text-xs text-gray-500 mt-1">
-          * Parcelamento disponível apenas para 3 ou mais ingressos
-        </p>
+  <div className="mb-6">
+    <Label className="text-sm font-medium">Número de Parcelas</Label>
+    <select
+      value={formData.installments}
+      onChange={(e) => setFormData(prev => ({ ...prev, installments: parseInt(e.target.value) }))}
+      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm mt-2"
+    >
+      <option value={1}>1x de R$ {(valorTotal / 1).toFixed(2).replace('.', ',')}</option>
+      {ticketQuantity >= 3 && (
+        <option value={2}>2x de R$ {(valorTotal / 2).toFixed(2).replace('.', ',')}</option>
       )}
-    </div>
-  )}
+      {ticketQuantity >= 6 && (
+        <option value={3}>3x de R$ {(valorTotal / 3).toFixed(2).replace('.', ',')}</option>
+      )}
+    </select>
+    {ticketQuantity < 3 && (
+      <p className="text-xs text-gray-500 mt-1">
+        * Parcelamento disponível apenas para 3 ou mais ingressos
+      </p>
+    )}
+    {ticketQuantity >= 3 && ticketQuantity < 6 && (
+      <p className="text-xs text-gray-500 mt-1">
+        * Parcelamento em 3x disponível para 6 ou mais ingressos
+      </p>
+    )}
+  </div>
+)}
 
   {/* Valor Total */}
   <div className="bg-orange-100 p-4 rounded-lg border border-orange-200">
@@ -1183,6 +1205,7 @@ const decreaseTickets = () => {
 }
 
 export default App;
+
 
 
 
