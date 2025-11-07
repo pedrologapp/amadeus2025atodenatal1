@@ -684,7 +684,7 @@ function App() {
                       Buscar Aluno
                     </h3>
 
-                    {/* FILTROS DE TURNO E SÉRIE  
+                    {/* FILTROS DE TURNO E SÉRIE   */}
                     <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex items-center justify-between mb-3">
                         <Label className="text-sm font-medium flex items-center">
@@ -706,8 +706,8 @@ function App() {
                       </div>
                     
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      */}
-                        {/* Filtro de Turno 
+                     
+                        {/* Filtro de Turno */}
                         <div>
                           <Label htmlFor="filterTurno" className="text-xs">Turno</Label>
                           <select
@@ -725,8 +725,8 @@ function App() {
                             ))}
                           </select>
                         </div>
-                        */}
-                        {/* Filtro de Série 
+                        
+                        {/* Filtro de Série  */}
                         <div>
                           <Label htmlFor="filterSerie" className="text-xs">Série</Label>
                           <select
@@ -745,8 +745,8 @@ function App() {
                           </select>
                         </div>
                       </div>
-                      */}
-                      {/* Indicador de filtros ativos  
+                     
+                      {/* Indicador de filtros ativos  */}
                       {(selectedTurno || selectedSerie) && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {selectedTurno && (
@@ -762,7 +762,7 @@ function App() {
                         </div>
                       )}
                     </div>
-                    */}
+                    
                     <div className="space-y-4">
                       <div className="relative">
                         <Label htmlFor="studentSearch">Digite o nome do aluno *</Label>
@@ -1209,6 +1209,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
