@@ -74,7 +74,7 @@ function App() {
 
   // FILTRO FIXO: Turno "Manhã" (não aparece na tela, mas funciona automaticamente)
   const [selectedTurno, setSelectedTurno] = useState('Manhã'); // ← FIXO EM "MANHÃ"
-  const [selectedSerie, setSelectedSerie] = useState(''); // ← Vazio = todas as séries
+  const [selectedSerie, setSelectedSerie] = useState('Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano'); // ← Vazio = todas as séries
 
   // Estado para quantidade de ingressos
   const [ticketQuantity, setTicketQuantity] = useState(1);
@@ -1208,6 +1208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
