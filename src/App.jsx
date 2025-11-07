@@ -43,7 +43,7 @@ import jardimImage from './assets/happy3.JPG';
 function App() {
   // ⚙️ CONFIGURAÇÃO - Séries permitidas (o turno está fixo como "Manhã")
   const TURNOS_DISPONIVEIS = ['Manhã'];
-  const SERIES_DISPONIVEIS = ['Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano'];
+  const SERIES_DISPONIVEIS = ['Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano','6º Ano', '7º Ano', '8º Ano' ,'9º Ano'];
 
   // Estados para o formulário
   const [showForm, setShowForm] = useState(false);
@@ -74,7 +74,7 @@ function App() {
 
   // FILTRO FIXO: Turno "Manhã" (não aparece na tela, mas funciona automaticamente)
   const [selectedTurno, setSelectedTurno] = useState('Manhã'); // ← FIXO EM "MANHÃ"
-  const [selectedSerie, setSelectedSerie] = useState('Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano'); // ← Vazio = todas as séries
+  const [selectedSerie, setSelectedSerie] = useState(''); // ← Vazio = todas as séries
 
   // Estado para quantidade de ingressos
   const [ticketQuantity, setTicketQuantity] = useState(1);
@@ -1208,6 +1208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
