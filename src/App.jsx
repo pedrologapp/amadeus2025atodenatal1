@@ -6,7 +6,7 @@ import { Badge } from './components/ui/badge';
 import { Separator } from './components/ui/separator';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { supabase } from './supabaseClient'; // NOVO: Import do Supabase
+import { supabase } from './supabaseClient';
 
 import { 
   MapPin, 
@@ -31,7 +31,8 @@ import {
   Utensils,
   XCircle,
   AlertTriangle,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 
 // Importando as imagens
@@ -40,6 +41,10 @@ import interiorImage2 from './assets/happy2.JPG';
 import jardimImage from './assets/happy3.JPG';
 
 function App() {
+  // ⚙️ CONFIGURAÇÃO - Defina aqui quais turnos e séries o cliente pode pesquisar
+  const TURNOS_DISPONIVEIS = ['Manhã']; // ← EDITE AQUI com os turnos do seu banco = ['Manhã', 'Tarde'];
+  const SERIES_DISPONIVEIS = ['Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano']; // ← EDITE AQUI com as séries do seu banco
+
   // Estados para o formulário
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -60,12 +65,16 @@ function App() {
   const [cpfError, setCpfError] = useState('');
   const [cpfValid, setCpfValid] = useState(false);
 
-  // NOVO: Estados para busca de alunos no Supabase
+  // Estados para busca de alunos no Supabase
   const [studentSearch, setStudentSearch] = useState('');
   const [studentsList, setStudentsList] = useState([]);
   const [showStudentDropdown, setShowStudentDropdown] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
+
+  // NOVO: Estados para filtros de turno e série
+  const [selectedTurno, setSelectedTurno] = useState('');
+  const [selectedSerie, setSelectedSerie] = useState('');
 
   // Estado para quantidade de ingressos
   const [ticketQuantity, setTicketQuantity] = useState(1);
@@ -109,7 +118,7 @@ function App() {
     }, 100);
   };
 
-  // NOVO: Função para buscar alunos no Supabase
+  // Função para buscar alunos no Supabase COM FILTROS
   const searchStudents = async (searchTerm) => {
     if (searchTerm.length < 2) {
       setStudentsList([]);
@@ -119,10 +128,22 @@ function App() {
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('alunos')
         .select('*')
-        .ilike('nome_completo', `%${searchTerm}%`)
+        .ilike('nome_completo', `%${searchTerm}%`);
+
+      // Aplicar filtro de turno se selecionado
+      if (selectedTurno) {
+        query = query.eq('turno', selectedTurno);
+      }
+
+      // Aplicar filtro de série se selecionado
+      if (selectedSerie) {
+        query = query.eq('serie', selectedSerie);
+      }
+
+      const { data, error } = await query
         .order('nome_completo')
         .limit(10);
 
@@ -139,7 +160,7 @@ function App() {
     }
   };
 
-  // NOVO: Função para selecionar um aluno
+  // Função para selecionar um aluno
   const selectStudent = (student) => {
     setSelectedStudent(student);
     setFormData(prev => ({
@@ -153,7 +174,7 @@ function App() {
     setStudentsList([]);
   };
 
-  // NOVO: Função para lidar com mudança no campo de busca
+  // Função para lidar com mudança no campo de busca
   const handleStudentSearchChange = (e) => {
     const value = e.target.value;
     setStudentSearch(value);
@@ -171,7 +192,14 @@ function App() {
     }
   };
 
-  // NOVO: Limpar seleção de aluno
+  // NOVO: Refazer busca quando filtros mudarem
+  const handleFilterChange = () => {
+    if (studentSearch.length >= 2) {
+      searchStudents(studentSearch);
+    }
+  };
+
+  // Limpar seleção de aluno
   const clearStudentSelection = () => {
     setSelectedStudent(null);
     setStudentSearch('');
@@ -183,6 +211,15 @@ function App() {
     }));
     setShowStudentDropdown(false);
     setStudentsList([]);
+  };
+
+  // Limpar filtros
+  const clearFilters = () => {
+    setSelectedTurno('');
+    setSelectedSerie('');
+    if (studentSearch.length >= 2) {
+      searchStudents(studentSearch);
+    }
   };
 
   const calculatePrice = () => {
@@ -625,7 +662,7 @@ function App() {
             </CardContent>
           </Card>
 
-          {/* FORMULÁRIO COM BUSCA DE ALUNOS */}
+          {/* FORMULÁRIO COM FILTROS */}
           {showForm && (
             <Card id="formulario-inscricao" className="border-orange-200 bg-orange-50/30">
               <CardHeader>
@@ -640,12 +677,91 @@ function App() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   
-                  {/* NOVO: BUSCA DE ALUNO */}
+                  {/* BUSCA DE ALUNO COM FILTROS */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4 flex items-center">
                       <Search className="mr-2 h-5 w-5" />
                       Buscar Aluno
                     </h3>
+
+                    {/* FILTROS DE TURNO E SÉRIE */}
+                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <Label className="text-sm font-medium flex items-center">
+                          <Filter className="h-4 w-4 mr-2" />
+                          Filtrar busca por:
+                        </Label>
+                        {(selectedTurno || selectedSerie) && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearFilters}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            <X className="h-3 w-3 mr-1" />
+                            Limpar filtros
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Filtro de Turno */}
+                        <div>
+                          <Label htmlFor="filterTurno" className="text-xs">Turno</Label>
+                          <select
+                            id="filterTurno"
+                            value={selectedTurno}
+                            onChange={(e) => {
+                              setSelectedTurno(e.target.value);
+                              setTimeout(handleFilterChange, 100);
+                            }}
+                            className="w-full h-9 px-3 rounded-md border border-input bg-white text-sm"
+                          >
+                            <option value="">Todos os Turnos</option>
+                            {TURNOS_DISPONIVEIS.map(turno => (
+                              <option key={turno} value={turno}>{turno}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Filtro de Série */}
+                        <div>
+                          <Label htmlFor="filterSerie" className="text-xs">Série</Label>
+                          <select
+                            id="filterSerie"
+                            value={selectedSerie}
+                            onChange={(e) => {
+                              setSelectedSerie(e.target.value);
+                              setTimeout(handleFilterChange, 100);
+                            }}
+                            className="w-full h-9 px-3 rounded-md border border-input bg-white text-sm"
+                          >
+                            <option value="">Todas as Séries</option>
+                            {SERIES_DISPONIVEIS.map(serie => (
+                              <option key={serie} value={serie}>{serie}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Indicador de filtros ativos */}
+                      {(selectedTurno || selectedSerie) && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {selectedTurno && (
+                            <Badge variant="secondary" className="text-xs">
+                              Turno: {selectedTurno}
+                            </Badge>
+                          )}
+                          {selectedSerie && (
+                            <Badge variant="secondary" className="text-xs">
+                              Série: {selectedSerie}
+                            </Badge>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
                     <div className="space-y-4">
                       <div className="relative">
                         <Label htmlFor="studentSearch">Digite o nome do aluno *</Label>
@@ -674,7 +790,7 @@ function App() {
                                 ✓ Aluno selecionado: {selectedStudent.nome_completo}
                               </span>
                               <span className="text-xs text-green-700">
-                                {selectedStudent.serie} - Turma {selectedStudent.turma}
+                                {selectedStudent.serie} - Turma {selectedStudent.turma} - Turno: {selectedStudent.turno}
                               </span>
                             </div>
                             <Button
@@ -700,7 +816,7 @@ function App() {
                               >
                                 <div className="font-medium text-sm">{student.nome_completo}</div>
                                 <div className="text-xs text-gray-600 mt-1">
-                                  {student.serie} - Turma {student.turma}
+                                  {student.serie} - Turma {student.turma} - {student.turno}
                                 </div>
                               </div>
                             ))}
@@ -711,7 +827,10 @@ function App() {
                           <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200">
                             <p className="text-sm text-yellow-800 flex items-center">
                               <AlertTriangle className="h-4 w-4 mr-2" />
-                              Nenhum aluno encontrado. Verifique o nome digitado.
+                              {(selectedTurno || selectedSerie) ? 
+                                'Nenhum aluno encontrado com esses filtros. Tente ajustar os filtros ou verifique o nome.' : 
+                                'Nenhum aluno encontrado. Verifique o nome digitado.'
+                              }
                             </p>
                           </div>
                         )}
@@ -1089,7 +1208,6 @@ function App() {
 }
 
 export default App;
-
 
 
 
