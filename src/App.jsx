@@ -704,8 +704,9 @@ function App() {
                           </Button>
                         )}
                       </div>
-                     */}
+                    
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                       */}
                         {/* Filtro de Turno */}
                         <div>
                           <Label htmlFor="filterTurno" className="text-xs">Turno</Label>
@@ -1208,6 +1209,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
