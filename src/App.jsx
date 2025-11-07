@@ -704,9 +704,9 @@ function App() {
                           </Button>
                         )}
                       </div>
-                    
+                     */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {/* Filtro de Turno 
+                        {/* Filtro de Turno */}
                         <div>
                           <Label htmlFor="filterTurno" className="text-xs">Turno</Label>
                           <select
@@ -724,8 +724,8 @@ function App() {
                             ))}
                           </select>
                         </div>
-*/}
-                        {/* Filtro de Série 
+
+                        {/* Filtro de Série */}
                         <div>
                           <Label htmlFor="filterSerie" className="text-xs">Série</Label>
                           <select
@@ -744,8 +744,8 @@ function App() {
                           </select>
                         </div>
                       </div>
-*/}
-                      {/* Indicador de filtros ativos  
+
+                      {/* Indicador de filtros ativos  */}
                       {(selectedTurno || selectedSerie) && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {selectedTurno && (
@@ -761,7 +761,7 @@ function App() {
                         </div>
                       )}
                     </div>
-*/}
+
                     <div className="space-y-4">
                       <div className="relative">
                         <Label htmlFor="studentSearch">Digite o nome do aluno *</Label>
@@ -1208,6 +1208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
