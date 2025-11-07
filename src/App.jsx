@@ -745,7 +745,7 @@ function App() {
                         </div>
                       </div>
 
-                      {/* Indicador de filtros ativos */}
+                      {/* Indicador de filtros ativos 
                       {(selectedTurno || selectedSerie) && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {selectedTurno && (
@@ -760,7 +760,7 @@ function App() {
                           )}
                         </div>
                       )}
-                    </div>
+                    </div> */}
 
                     <div className="space-y-4">
                       <div className="relative">
@@ -1208,6 +1208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
