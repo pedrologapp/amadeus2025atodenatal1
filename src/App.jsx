@@ -140,8 +140,13 @@ function App() {
 
       // Aplicar filtro de série se selecionado
       if (selectedSerie) {
-        query = query.eq('serie', selectedSerie);
+        query = query.eq('serie', SERIES_DISPONIVEIS);
       }
+
+          // Aplicar filtro de série se selecionado
+    if (selectedSerie) {
+      query = query.eq('serie', selectedSerie);
+    }
 
       const { data, error } = await query
         .order('nome_completo')
@@ -1203,6 +1208,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
