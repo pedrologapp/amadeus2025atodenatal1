@@ -41,9 +41,9 @@ import interiorImage2 from './assets/happy2.JPG';
 import jardimImage from './assets/happy3.JPG';
 
 function App() {
-  // ⚙️ CONFIGURAÇÃO - Defina aqui quais turnos e séries o cliente pode pesquisar
-  const TURNOS_DISPONIVEIS = ['Manhã']; // ← EDITE AQUI com os turnos do seu banco = ['Manhã', 'Tarde'];
-  const SERIES_DISPONIVEIS = ['Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano']; // ← EDITE AQUI com as séries do seu banco
+  // ⚙️ CONFIGURAÇÃO - Séries permitidas (o turno está fixo como "Manhã")
+  const TURNOS_DISPONIVEIS = ['Manhã'];
+  const SERIES_DISPONIVEIS = ['Grupo IV','Grupo V', 'Maternal(3)', 'Maternalzinho(2)', '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano'];
 
   // Estados para o formulário
   const [showForm, setShowForm] = useState(false);
@@ -72,9 +72,9 @@ function App() {
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
 
-  // NOVO: Estados para filtros de turno e série
-  const [selectedTurno, setSelectedTurno] = useState('');
-  const [selectedSerie, setSelectedSerie] = useState('');
+  // FILTRO FIXO: Turno "Manhã" (não aparece na tela, mas funciona automaticamente)
+  const [selectedTurno, setSelectedTurno] = useState('Manhã'); // ← FIXO EM "MANHÃ"
+  const [selectedSerie, setSelectedSerie] = useState(''); // ← Vazio = todas as séries
 
   // Estado para quantidade de ingressos
   const [ticketQuantity, setTicketQuantity] = useState(1);
@@ -118,7 +118,7 @@ function App() {
     }, 100);
   };
 
-  // Função para buscar alunos no Supabase COM FILTROS
+  // Função para buscar alunos no Supabase COM FILTRO AUTOMÁTICO DE TURNO
   const searchStudents = async (searchTerm) => {
     if (searchTerm.length < 2) {
       setStudentsList([]);
@@ -133,7 +133,7 @@ function App() {
         .select('*')
         .ilike('nome_completo', `%${searchTerm}%`);
 
-      // Aplicar filtro de turno se selecionado
+      // FILTRO FIXO: sempre filtra por turno "Manhã"
       if (selectedTurno) {
         query = query.eq('turno', selectedTurno);
       }
@@ -192,7 +192,7 @@ function App() {
     }
   };
 
-  // NOVO: Refazer busca quando filtros mudarem
+  // Refazer busca quando filtros mudarem
   const handleFilterChange = () => {
     if (studentSearch.length >= 2) {
       searchStudents(studentSearch);
@@ -215,7 +215,7 @@ function App() {
 
   // Limpar filtros
   const clearFilters = () => {
-    setSelectedTurno('');
+    setSelectedTurno('Manhã'); // Mantém "Manhã" fixo
     setSelectedSerie('');
     if (studentSearch.length >= 2) {
       searchStudents(studentSearch);
@@ -662,7 +662,7 @@ function App() {
             </CardContent>
           </Card>
 
-          {/* FORMULÁRIO COM FILTROS */}
+          {/* FORMULÁRIO - FILTRO AUTOMÁTICO (SEM CAIXINHA VISÍVEL) */}
           {showForm && (
             <Card id="formulario-inscricao" className="border-orange-200 bg-orange-50/30">
               <CardHeader>
@@ -677,14 +677,14 @@ function App() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   
-                  {/* BUSCA DE ALUNO COM FILTROS */}
+                  {/* BUSCA DE ALUNO (FILTRO AUTOMÁTICO: SÓ TURNO MANHÃ) */}
                   <div>
                     <h3 className="text-lg font-semibold mb-4 flex items-center">
                       <Search className="mr-2 h-5 w-5" />
                       Buscar Aluno
                     </h3>
 
-                    {/* FILTROS DE TURNO E SÉRIE   */}
+                    {/* CAIXINHA DE FILTROS COMENTADA - NÃO APARECE NA TELA
                     <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                       <div className="flex items-center justify-between mb-3">
                         <Label className="text-sm font-medium flex items-center">
@@ -706,8 +706,6 @@ function App() {
                       </div>
                     
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                     
-                        {/* Filtro de Turno */}
                         <div>
                           <Label htmlFor="filterTurno" className="text-xs">Turno</Label>
                           <select
@@ -726,7 +724,6 @@ function App() {
                           </select>
                         </div>
                         
-                        {/* Filtro de Série  */}
                         <div>
                           <Label htmlFor="filterSerie" className="text-xs">Série</Label>
                           <select
@@ -745,8 +742,7 @@ function App() {
                           </select>
                         </div>
                       </div>
-                     
-                      {/* Indicador de filtros ativos  */}
+
                       {(selectedTurno || selectedSerie) && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {selectedTurno && (
@@ -762,6 +758,7 @@ function App() {
                         </div>
                       )}
                     </div>
+                    FIM DA CAIXINHA DE FILTROS */}
                     
                     <div className="space-y-4">
                       <div className="relative">
@@ -828,10 +825,7 @@ function App() {
                           <div className="mt-2 p-3 bg-yellow-50 rounded border border-yellow-200">
                             <p className="text-sm text-yellow-800 flex items-center">
                               <AlertTriangle className="h-4 w-4 mr-2" />
-                              {(selectedTurno || selectedSerie) ? 
-                                'Nenhum aluno encontrado com esses filtros. Tente ajustar os filtros ou verifique o nome.' : 
-                                'Nenhum aluno encontrado. Verifique o nome digitado.'
-                              }
+                              Nenhum aluno encontrado. Verifique o nome digitado.
                             </p>
                           </div>
                         )}
@@ -1209,6 +1203,7 @@ function App() {
 }
 
 export default App;
+
 
 
 
